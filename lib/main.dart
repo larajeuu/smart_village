@@ -1,46 +1,65 @@
 import 'package:flutter/material.dart';
-import 'screens/shell.dart';
-import 'services/location_service.dart';
-import 'theme.dart';
-
-final messengerKey = GlobalKey<ScaffoldMessengerState>();
+import 'data/faskes.dart';
+import 'screens/home_screen.dart';
+import 'screens/peta_screen.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
   runApp(const SmartVillageApp());
 }
 
-class SmartVillageApp extends StatefulWidget {
+class SmartVillageApp extends StatelessWidget {
   const SmartVillageApp({super.key});
+
   @override
-  State<SmartVillageApp> createState() => _SmartVillageAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Smart Village',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: const Color(0xFF1E6FE8),
+        useMaterial3: true,
+      ),
+      home: const MainShell(),
+    );
+  }
 }
 
-class _SmartVillageAppState extends State<SmartVillageApp> {
+class MainShell extends StatefulWidget {
+  const MainShell({super.key});
+
+  @override
+  State<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<MainShell> {
+  int _index = 0;
+
   @override
   void initState() {
     super.initState();
-    final svc = LocationService.instance;
-    svc.init();
-    // Notifikasi geofence (masuk / keluar area fasilitas)
-    svc.events.stream.listen((e) {
-      messengerKey.currentState
-        ?..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          backgroundColor: e.entered ? Colors.green[700] : Colors.orange[800],
-          content: Text(e.entered
-              ? 'Anda memasuki area ${e.facility.name}'
-              : 'Anda meninggalkan area ${e.facility.name}'),
-        ));
-    });
+    initLocation(); // ambil posisi GPS
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-        title: 'Smart Village',
-        debugShowCheckedModeBanner: false,
-        scaffoldMessengerKey: messengerKey,
-        theme: buildTheme(),
-        home: const Shell(),
-      );
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _index,
+        children: const [
+          HomeScreen(),
+          PetaScreen(), // tab Peta: hanya peta
+          Center(child: Text('Profil')),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (i) => setState(() => _index = i),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Beranda'),
+          NavigationDestination(icon: Icon(Icons.map_outlined), selectedIcon: Icon(Icons.map), label: 'Peta'),
+          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profil'),
+        ],
+      ),
+    );
+  }
 }

@@ -1,0 +1,198 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+
+class Faskes {
+  final String nama;
+  final String kategori; // 'Rumah Sakit' / 'Puskesmas' / 'Klinik'
+  final String jenis; // 'RS Umum' / 'RS Khusus' / 'Puskesmas' / 'Klinik'
+  final String foto;
+  final String alamat;
+  final String telepon;
+  final double rating;
+  final LatLng pos;
+  final double radius; // meter (geofence)
+  final List<String> layanan;
+  final int ulasan;
+
+  const Faskes({
+    required this.nama,
+    required this.kategori,
+    required this.jenis,
+    required this.foto,
+    required this.alamat,
+    required this.telepon,
+    required this.rating,
+    required this.pos,
+    required this.radius,
+    required this.layanan,
+    this.ulasan = 120,
+  });
+}
+
+// ======== DATA FASILITAS (edit di sini) ========
+// Koordinat contoh ada di sekitar Jakarta. Ganti sesuai desa/kabupatenmu.
+const List<Faskes> daftarFaskes = [
+  Faskes(
+    nama: 'RSUD Kabupaten X',
+    kategori: 'Rumah Sakit',
+    jenis: 'RS Umum',
+    foto: 'assets/images/rsud_kabupaten_x.jpeg',
+    alamat: 'Jl. Raya Kabupaten X No.10, Desa Sukamaju',
+    telepon: '(021) 1234 5678',
+    rating: 4.5,
+    pos: LatLng(-6.2000, 106.8400),
+    radius: 300,
+    layanan: ['IGD', 'Poliklinik', 'Rawat Inap', 'Laboratorium', 'Radiologi'],
+  ),
+  Faskes(
+    nama: 'RS Harapan Bunda',
+    kategori: 'Rumah Sakit',
+    jenis: 'RS Umum',
+    foto: 'assets/images/rs_harapan_bunda.jpeg',
+    alamat: 'Jl. Harapan No. 5, Desa Sukamaju',
+    telepon: '(021) 2345 6789',
+    rating: 4.3,
+    pos: LatLng(-6.2150, 106.8500),
+    radius: 250,
+    layanan: ['IGD', 'Poliklinik', 'Rawat Inap'],
+  ),
+  Faskes(
+    nama: 'RS Sumber Sehat',
+    kategori: 'Rumah Sakit',
+    jenis: 'RS Khusus',
+    foto: 'assets/images/rs_sumber_sehat.jpeg',
+    alamat: 'Jl. Sehat No. 8, Desa Sukamaju',
+    telepon: '(021) 3456 7890',
+    rating: 4.2,
+    pos: LatLng(-6.2250, 106.8300),
+    radius: 250,
+    layanan: ['Mata', 'Bedah', 'Rawat Inap'],
+  ),
+  Faskes(
+    nama: 'RS Mitra Keluarga',
+    kategori: 'Rumah Sakit',
+    jenis: 'RS Umum',
+    foto: 'assets/images/rs_mitra_keluarga.jpeg',
+    alamat: 'Jl. Mitra No. 12, Desa Sukamaju',
+    telepon: '(021) 4567 8901',
+    rating: 4.4,
+    pos: LatLng(-6.1900, 106.8600),
+    radius: 300,
+    layanan: ['IGD', 'Poliklinik', 'Laboratorium'],
+  ),
+  Faskes(
+    nama: 'Puskesmas Sukamaju',
+    kategori: 'Puskesmas',
+    jenis: 'Puskesmas',
+    foto: 'assets/images/puskesmas_sukamaju.jpeg',
+    alamat: 'Jl. Desa No. 2, Desa Sukamaju',
+    telepon: '(021) 5678 9012',
+    rating: 4.0,
+    pos: LatLng(-6.2100, 106.8350),
+    radius: 200,
+    layanan: ['Poliklinik', 'KIA', 'Imunisasi'],
+  ),
+  Faskes(
+    nama: 'Klinik Sehat Mandiri',
+    kategori: 'Klinik',
+    jenis: 'Klinik',
+    foto: 'assets/images/klinik_sehat_mandiri.jpeg',
+    alamat: 'Jl. Mandiri No. 3, Desa Sukamaju',
+    telepon: '(021) 6789 0123',
+    rating: 4.1,
+    pos: LatLng(-6.2050, 106.8550),
+    radius: 200,
+    layanan: ['Poliklinik', 'Laboratorium'],
+  ),
+];
+
+// ======== POSISI PENGGUNA ========
+const LatLng posisiAwal = LatLng(-6.2088, 106.8456);
+final ValueNotifier<LatLng> userPos = ValueNotifier<LatLng>(posisiAwal);
+
+Future<void> initLocation() async {
+  try {
+    final enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) return;
+    var perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (perm == LocationPermission.denied ||
+        perm == LocationPermission.deniedForever) {
+      return;
+    }
+    final p = await Geolocator.getCurrentPosition();
+    userPos.value = LatLng(p.latitude, p.longitude);
+  } catch (_) {
+    // gagal ambil GPS: tetap pakai posisiAwal
+  }
+}
+
+double jarakKm(Faskes f, LatLng dari) {
+  final meter = const Distance().as(LengthUnit.Meter, dari, f.pos);
+  return meter / 1000;
+}
+
+// ======== WARNA, IKON, FOTO ========
+Color warnaKategori(String kategori) {
+  switch (kategori) {
+    case 'Puskesmas':
+      return Colors.green;
+    case 'Klinik':
+      return Colors.purple;
+    default:
+      return Colors.red;
+  }
+}
+
+IconData ikonKategori(String kategori) {
+  switch (kategori) {
+    case 'Puskesmas':
+      return Icons.home_work;
+    case 'Klinik':
+      return Icons.medical_services;
+    default:
+      return Icons.local_hospital;
+  }
+}
+
+Widget faskesFoto(Faskes f, {double? w, double? h}) {
+  return Image.asset(
+    f.foto,
+    width: w,
+    height: h,
+    fit: BoxFit.cover,
+    errorBuilder: (_, __, ___) => Container(
+      width: w,
+      height: h,
+      color: Colors.grey.shade200,
+      child: Icon(ikonKategori(f.kategori), color: Colors.grey, size: 36),
+    ),
+  );
+}
+
+// Warna chip jenis (sesuai tugas)
+Color bgJenis(String jenis) {
+  switch (jenis) {
+    case 'RS Khusus':
+      return const Color(0xFFDCEBFF); // biru muda
+    case 'Klinik':
+      return const Color(0xFFEBDDFA); // ungu muda
+    default:
+      return const Color(0xFFD8F5DF); // hijau muda (RS Umum, Puskesmas)
+  }
+}
+
+Color fgJenis(String jenis) {
+  switch (jenis) {
+    case 'RS Khusus':
+      return const Color(0xFF1668E3); // biru
+    case 'Klinik':
+      return const Color(0xFF7B3FC4); // ungu
+    default:
+      return const Color(0xFF1E9E4A); // hijau
+  }
+}

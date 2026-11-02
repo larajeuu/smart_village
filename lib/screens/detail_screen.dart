@@ -1,92 +1,174 @@
 import 'package:flutter/material.dart';
-import '../models/facility.dart';
-import '../services/location_service.dart';
-import '../theme.dart';
-import 'map_screen.dart';
+import '../data/faskes.dart';
+import 'peta_lokasi_screen.dart';
 
 class DetailScreen extends StatelessWidget {
-  final Facility facility;
-  const DetailScreen({super.key, required this.facility});
+  final Faskes faskes;
+  const DetailScreen({super.key, required this.faskes});
 
   @override
   Widget build(BuildContext context) {
-    final f = facility;
-    final svc = LocationService.instance;
+    final f = faskes;
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Fasilitas')),
-      body: ListView(children: [
-        Container(
-          height: 180,
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(colors: [f.type.color.withOpacity(.25), kBg]),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        elevation: 0,
+        title: const Text('Detail Fasilitas',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          IconButton(icon: const Icon(Icons.share), onPressed: () {}),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // FOTO BESAR
+            faskesFoto(f, w: double.infinity, h: 200),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(f.nama,
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 8),
+
+                  // CHIP JENIS (warna sesuai tugas)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: bgJenis(f.jenis),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      f.jenis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: fgJenis(f.jenis),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 20),
+                      const SizedBox(width: 4),
+                      Text('${f.rating}',
+                          style:
+                              const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(' (${f.ulasan} ulasan)',
+                          style: const TextStyle(
+                              color: Colors.grey, fontSize: 13)),
+                    ],
+                  ),
+                  const Divider(height: 32),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: ValueListenableBuilder(
+                          valueListenable: userPos,
+                          builder: (_, pos, __) => _info(
+                            Icons.location_on,
+                            '${jarakKm(f, pos).toStringAsFixed(1)} km',
+                            f.alamat,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: _info(Icons.phone, f.telepon, 'Telepon')),
+                    ],
+                  ),
+                  const Divider(height: 32),
+                  const Text('Jenis Pelayanan',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 16)),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: f.layanan
+                        .map((l) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF1FB),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Text(l,
+                                  style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Color(0xFF3B5B8C))),
+                            ))
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // TOMBOL "LIHAT DI PETA" (biru solid seperti tugas)
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
+          child: SizedBox(
+            height: 52,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1668E3),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.navigation, size: 20),
+              label: const Text(
+                'Lihat di Peta',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              ),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => PetaLokasiScreen(focus: f)),
+              ),
+            ),
           ),
-          child: Icon(f.type.icon, size: 90, color: f.type.color),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(f.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(color: Colors.green.withOpacity(.15), borderRadius: BorderRadius.circular(6)),
-              child: Text(f.category, style: const TextStyle(fontSize: 11, color: Colors.green)),
-            ),
-            const SizedBox(height: 8),
-            Row(children: [
-              const Icon(Icons.star, color: Colors.amber, size: 18),
-              Text(' ${f.rating}', style: const TextStyle(fontSize: 12)),
-            ]),
-            const Divider(height: 28),
-            ValueListenableBuilder(
-              valueListenable: svc.position,
-              builder: (_, __, ___) => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(child: _info(Icons.location_on, Colors.red, LocationService.format(svc.distanceTo(f)), f.address)),
-                Expanded(child: _info(Icons.phone, kPrimary, f.phone, 'Telepon')),
-              ]),
-            ),
-            const SizedBox(height: 20),
-            const Text('Jenis Pelayanan', style: TextStyle(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: f.services
-                  .map((s) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(color: kPrimary.withOpacity(.1), borderRadius: BorderRadius.circular(8)),
-                        child: Text(s, style: const TextStyle(fontSize: 12, color: kPrimary)),
-                      ))
-                  .toList(),
-            ),
-          ]),
-        ),
-      ]),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16),
-        child: FilledButton.icon(
-          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
-          icon: const Icon(Icons.navigation),
-          label: const Text('Lihat di Peta'),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MapScreen(focus: f))),
         ),
       ),
     );
   }
 
-  Widget _info(IconData i, Color c, String t, String s) => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(i, color: c, size: 18),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(t, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
-              Text(s, style: const TextStyle(fontSize: 10, color: Colors.black54)),
-            ]),
+  Widget _info(IconData icon, String judul, String sub) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: const Color(0xFF1668E3)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(judul, style: const TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(sub,
+                  style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            ],
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 }
