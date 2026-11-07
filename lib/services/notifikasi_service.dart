@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../data/faskes.dart';
@@ -54,6 +56,10 @@ class NotifikasiService {
   final Set<String> _didalam = {};
   bool _jalan = false;
 
+  // BARU: aliran kejadian masuk/keluar area, didengarkan main.dart
+  final _kejadian = StreamController<Notifikasi>.broadcast();
+  Stream<Notifikasi> get kejadian => _kejadian.stream;
+
   /// Aman dipanggil berkali-kali; hanya aktif sekali.
   void mulai() {
     if (_jalan) return;
@@ -81,12 +87,14 @@ class NotifikasiService {
         faskes: f,
         waktu: now);
     items.value = [n, ...items.value];
+    _kejadian.add(n); // BARU: kabari pendengar (popup, notifikasi sistem)
 
     messengerKey.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: jenis == JenisNotif.masuk ? svBlue : Colors.orange[800],
+        backgroundColor:
+            jenis == JenisNotif.masuk ? svBlue : Colors.orange[800],
         content: Text(n.judul),
       ));
   }
