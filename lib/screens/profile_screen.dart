@@ -1,203 +1,145 @@
 import 'package:flutter/material.dart';
-import '../data/faskes.dart';
-
-// ===== EDIT NAMA DI SINI =====
-const String _nama = 'Nana';
-
-const Color _biru = Color(0xFF1668E3);
-const Color _biruMuda = Color(0xFFEAF1FB);
-const Color _hijau = Color(0xFF1E9E4A);
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  String _format(double meter) => meter < 1000
-      ? '${meter.round()} m'
-      : '${(meter / 1000).toStringAsFixed(1)} km';
+  // Data dummy karena login masih simulasi. Nanti diganti data user asli.
+  static const _name = 'Andi Pratama';
+  static const _phone = '0812 3456 7890';
+
+  void _soon(BuildContext context, String label) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$label belum tersedia')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        title: const Text('Profil',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+        title: const Text('Profil'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => _soon(context, 'Pengaturan'),
+          ),
+        ],
       ),
-      body: ValueListenableBuilder(
-        valueListenable: userPos,
-        builder: (context, pos, _) {
-          // urutkan dari yang terdekat
-          final urut = [...daftarFaskes]
-            ..sort((a, b) => jarakKm(a, pos).compareTo(jarakKm(b, pos)));
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const _UserCard(name: _name, phone: _phone),
+          const SizedBox(height: 16),
+          Card(
             child: Column(
               children: [
-                // ===== AVATAR + NAMA =====
-                CircleAvatar(
-                  radius: 34,
-                  backgroundColor: _biruMuda,
-                  child: Text(
-                    _nama.isNotEmpty ? _nama[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: _biru),
-                  ),
+                _MenuTile(
+                  icon: Icons.location_on_outlined,
+                  title: 'Lokasi Saya',
+                  onTap: () => _soon(context, 'Lokasi Saya'),
                 ),
-                const SizedBox(height: 10),
-                const Text(_nama,
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 18),
-
-                // ===== LOKASI SAYA =====
-                _kartu(
-                  judul: 'Lokasi Saya',
-                  ikon: Icons.my_location,
-                  anak: Column(
-                    children: [
-                      _info('Latitude', pos.latitude.toStringAsFixed(5)),
-                      _info('Longitude', pos.longitude.toStringAsFixed(5)),
-                    ],
-                  ),
+                const Divider(height: 1),
+                _MenuTile(
+                  icon: Icons.notifications_none,
+                  title: 'Notifikasi',
+                  onTap: () => _soon(context, 'Notifikasi'),
                 ),
-                const SizedBox(height: 14),
-
-                // ===== STATUS GEOFENCE =====
-                _kartu(
-                  judul: 'Status Geofence',
-                  ikon: Icons.radio_button_checked,
-                  anak: Column(
-                    children: urut.map((f) {
-                      final meter = jarakKm(f, pos) * 1000;
-                      final dalam = meter <= f.radius;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 7),
-                        child: Row(
-                          children: [
-                            Icon(
-                              dalam
-                                  ? Icons.check_circle
-                                  : Icons.radio_button_unchecked,
-                              color: dalam ? _hijau : Colors.grey.shade400,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(f.nama,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14)),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${_format(meter)}  |  radius ${f.radius.round()} m',
-                                    style: const TextStyle(
-                                        fontSize: 11, color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: dalam
-                                    ? const Color(0xFFD8F5DF)
-                                    : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                dalam ? 'Di dalam' : 'Di luar',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: dalam ? _hijau : Colors.grey,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                const Divider(height: 1),
+                _MenuTile(
+                  icon: Icons.language,
+                  title: 'Bahasa',
+                  value: 'Indonesia',
+                  onTap: () => _soon(context, 'Bahasa'),
+                ),
+                const Divider(height: 1),
+                _MenuTile(
+                  icon: Icons.help_outline,
+                  title: 'Bantuan',
+                  onTap: () => _soon(context, 'Bantuan'),
+                ),
+                const Divider(height: 1),
+                _MenuTile(
+                  icon: Icons.info_outline,
+                  title: 'Tentang Aplikasi',
+                  onTap: () => _soon(context, 'Tentang Aplikasi'),
                 ),
               ],
             ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _kartu(
-      {required String judul, required IconData ikon, required Widget anak}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(ikon, size: 20, color: _biru),
-              const SizedBox(width: 8),
-              Text(judul,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 16)),
-            ],
           ),
-          const Divider(height: 24),
-          anak,
+          const SizedBox(height: 24),
+          OutlinedButton(
+            onPressed: () =>
+                _soon(context, 'Keluar'), // diganti di langkah berikutnya
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+            ),
+            child: const Text('Keluar'),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _info(String label, String nilai) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
+class _UserCard extends StatelessWidget {
+  const _UserCard({required this.name, required this.phone});
+
+  final String name;
+  final String phone;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 32,
+          backgroundColor: color.withOpacity(0.12),
+          child: Icon(Icons.person, size: 36, color: color),
+        ),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(name,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 2),
+            Text(phone, style: const TextStyle(color: Colors.grey)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MenuTile extends StatelessWidget {
+  const _MenuTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.value,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? value; // teks di kanan, contoh: "Indonesia"
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: _biruMuda,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.location_on, size: 20, color: _biru),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                const SizedBox(height: 2),
-                Text(nilai,
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600)),
-              ],
-            ),
-          ),
+          if (value != null)
+            Text(value!, style: const TextStyle(color: Colors.grey)),
+          const Icon(Icons.chevron_right),
         ],
       ),
+      onTap: onTap,
     );
   }
 }
