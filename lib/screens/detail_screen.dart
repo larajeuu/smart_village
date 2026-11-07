@@ -65,8 +65,7 @@ class DetailScreen extends StatelessWidget {
                       const Icon(Icons.star, color: Colors.amber, size: 20),
                       const SizedBox(width: 4),
                       Text('${f.rating}',
-                          style:
-                              const TextStyle(fontWeight: FontWeight.w600)),
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
                       Text(' (${f.ulasan} ulasan)',
                           style: const TextStyle(
                               color: Colors.grey, fontSize: 13)),
@@ -92,8 +91,8 @@ class DetailScreen extends StatelessWidget {
                   ),
                   const Divider(height: 32),
                   const Text('Jenis Pelayanan',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 16)),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -108,8 +107,7 @@ class DetailScreen extends StatelessWidget {
                               ),
                               child: Text(l,
                                   style: const TextStyle(
-                                      fontSize: 13,
-                                      color: Color(0xFF3B5B8C))),
+                                      fontSize: 13, color: Color(0xFF3B5B8C))),
                             ))
                         .toList(),
                   ),
