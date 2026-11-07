@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
+import 'help_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -81,10 +82,12 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 _MenuTile(
-                  icon: Icons.help_outline,
-                  title: 'Bantuan',
-                  onTap: () => _soon(context, 'Bantuan'),
-                ),
+                    icon: Icons.help_outline,
+                    title: 'Bantuan',
+                    onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HelpScreen()),
+                        )),
                 const Divider(height: 1),
                 _MenuTile(
                     icon: Icons.info_outline,
