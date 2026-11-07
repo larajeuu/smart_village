@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'splash_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -10,6 +11,33 @@ class ProfileScreen extends StatelessWidget {
   void _soon(BuildContext context, String label) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$label belum tersedia')),
+    );
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Keluar'),
+        content: const Text('Apakah Anda yakin ingin keluar?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => _logout(context),
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true || !context.mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const SplashScreen()),
+      (route) => false,
     );
   }
 
@@ -59,17 +87,20 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 _MenuTile(
-                  icon: Icons.info_outline,
-                  title: 'Tentang Aplikasi',
-                  onTap: () => _soon(context, 'Tentang Aplikasi'),
-                ),
+                    icon: Icons.info_outline,
+                    title: 'Tentang Aplikasi',
+                    onTap: () => showAboutDialog(
+                          context: context,
+                          applicationName: 'Smart Village',
+                          applicationVersion: '1.0.0',
+                          applicationLegalese: 'UTS Pemrograman Mobile CIE511',
+                        )),
               ],
             ),
           ),
           const SizedBox(height: 24),
           OutlinedButton(
-            onPressed: () =>
-                _soon(context, 'Keluar'), // diganti di langkah berikutnya
+            onPressed: () => _logout(context),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
             ),
