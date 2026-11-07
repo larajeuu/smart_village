@@ -6,15 +6,30 @@ class ListScreen extends StatefulWidget {
   final String? kategori; // null = semua
   final String title;
   final bool cari;
+
+  /// Kata pencarian awal (mis. dari ketukan "Poliklinik" di halaman Detail).
+  final String cariAwal;
   const ListScreen(
-      {super.key, this.kategori, required this.title, this.cari = false});
+      {super.key,
+      this.kategori,
+      required this.title,
+      this.cari = false,
+      this.cariAwal = ''});
   @override
   State<ListScreen> createState() => _ListScreenState();
 }
 
 class _ListScreenState extends State<ListScreen> {
   late String _sel = widget.kategori ?? 'Semua';
-  String _q = '';
+  late String _q = widget.cariAwal;
+  late final TextEditingController _ctrl =
+      TextEditingController(text: widget.cariAwal);
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +40,9 @@ class _ListScreenState extends State<ListScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
             child: SearchBox('Cari rumah sakit, puskesmas, klinik...',
-                autofocus: true, onChanged: (v) => setState(() => _q = v)),
+                controller: _ctrl,
+                autofocus: widget.cariAwal.isEmpty,
+                onChanged: (v) => setState(() => _q = v)),
           ),
         const SizedBox(height: 4),
         FilterChips(
@@ -37,12 +54,12 @@ class _ListScreenState extends State<ListScreen> {
           child: ValueListenableBuilder(
             valueListenable: userPos,
             builder: (_, pos, __) {
+              final q = _q.toLowerCase();
               final items = daftarFaskes
                   .where((f) =>
                       (_sel == 'Semua' || f.kategori == _sel) &&
-                      (f.nama.toLowerCase().contains(_q.toLowerCase()) ||
-                          f.layanan.any((l) =>
-                              l.toLowerCase().contains(_q.toLowerCase()))))
+                      (f.nama.toLowerCase().contains(q) ||
+                          f.layanan.any((l) => l.toLowerCase().contains(q))))
                   .toList()
                 ..sort((a, b) => jarakKm(a, pos).compareTo(jarakKm(b, pos)));
               if (items.isEmpty) {
@@ -52,7 +69,8 @@ class _ListScreenState extends State<ListScreen> {
               }
               return ListView(
                   children: items
-                      .map((f) => FacilityTile(f, detail: true, maxChips: 4, foto: 76))
+                      .map((f) =>
+                          FacilityTile(f, detail: true, maxChips: 4, foto: 76))
                       .toList());
             },
           ),

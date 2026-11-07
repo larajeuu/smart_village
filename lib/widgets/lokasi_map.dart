@@ -19,6 +19,9 @@ class LokasiMap extends StatefulWidget {
   final Faskes? focus;
   final List<LatLng>? route;
   final List<LatLng>? fit;
+
+  /// URL tile peta. null = OpenStreetMap standar.
+  final String? tileUrl;
   const LokasiMap({
     super.key,
     required this.points,
@@ -28,6 +31,7 @@ class LokasiMap extends StatefulWidget {
     this.focus,
     this.route,
     this.fit,
+    this.tileUrl,
   });
   @override
   State<LokasiMap> createState() => _LokasiMapState();
@@ -52,11 +56,20 @@ class _LokasiMapState extends State<LokasiMap> {
                     coordinates: widget.fit!,
                     padding: const EdgeInsets.all(70)),
             // tekan lama = geser lokasi simulasi (untuk emulator)
-            onLongPress: (_, p) => userPos.value = p,
+            onLongPress: (_, p) {
+              setPosisiSimulasi(p);
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(const SnackBar(
+                    content: Text(
+                        'Lokasi simulasi dipindahkan. Ketuk tombol lokasi untuk kembali ke GPS.')));
+            },
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              key: ValueKey(widget.tileUrl),
+              urlTemplate: widget.tileUrl ??
+                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.example.smart_village',
             ),
             if (widget.showGeofence)
@@ -142,7 +155,12 @@ class _LokasiMapState extends State<LokasiMap> {
                 if (f != null) _c.move(f.pos, 15.5);
               }),
               const SizedBox(height: 10),
-              _Fab(Icons.my_location, svSub, () => _c.move(pos, 15.5)),
+              _Fab(Icons.my_location, svSub, () async {
+                // kalau sedang simulasi, kembali membaca GPS dulu
+                if (modeSimulasi) await kembaliKeGps();
+                if (!mounted) return;
+                _c.move(userPos.value, 15.5);
+              }),
             ]),
           ),
       ]),

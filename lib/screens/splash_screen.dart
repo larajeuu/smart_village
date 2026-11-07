@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
+import '../data/faskes.dart';
+import '../services/notifikasi_service.dart';
 import '../widgets/common.dart';
 import '../widgets/sv_theme.dart';
 import 'login_screen.dart';
 import 'shell.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    initLocation(); // minta izin + baca GPS + pantau terus
+    NotifikasiService.instance.mulai(); // geofencing -> notifikasi
+  }
   // "Mulai" -> langsung ke Shell (tamu), "Masuk" -> LoginScreen
   void _mulai(BuildContext c) => Navigator.pushReplacement(
       c, MaterialPageRoute(builder: (_) => const Shell()));
