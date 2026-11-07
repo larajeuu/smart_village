@@ -1,4 +1,4 @@
-import '../models/facility.dart';
+import '../data/faskes.dart';
 
 /// STUB - kerangka kosong. Isi aslinya (flutter_local_notifications)
 /// dikerjakan di branch fitur notifikasi.
@@ -12,7 +12,7 @@ class NotificationService {
   }
 
   /// Dipanggil saat user masuk area geofence.
-  Future<void> showGeofenceEnter(Facility facility) async {
+  Future<void> showGeofenceEnter(Faskes faskes) async {
     // TODO: tampilkan notifikasi sistem
   }
 }

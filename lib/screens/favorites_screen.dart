@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../models/facility.dart';
+import '../data/faskes.dart';
 import '../services/favorites_service.dart';
+import '../widgets/common.dart';
+import '../widgets/sv_theme.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -9,46 +11,27 @@ class FavoritesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Favorit')),
+      backgroundColor: Colors.white,
+      appBar: backBar(context, 'Favorit', tampilBack: false),
       body: ValueListenableBuilder<Set<String>>(
         valueListenable: FavoritesService.instance.ids,
         builder: (context, ids, _) {
-          final items = facilities.where((f) => ids.contains(f.id)).toList();
-
+          final items =
+              daftarFaskes.where((f) => ids.contains(favId(f))).toList();
           if (items.isEmpty) return const _EmptyState();
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (_, i) => _FavoriteTile(facility: items[i]),
+          // userPos didengarkan supaya jarak ikut berubah saat lokasi digeser.
+          return ValueListenableBuilder(
+            valueListenable: userPos,
+            builder: (_, __, ___) => ListView.separated(
+              itemCount: items.length,
+              separatorBuilder: (_, __) =>
+                  const Divider(height: 1, color: svLine),
+              itemBuilder: (_, i) =>
+                  FacilityTile(items[i], detail: true, maxChips: 4, foto: 76),
+            ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _FavoriteTile extends StatelessWidget {
-  const _FavoriteTile({required this.facility});
-
-  final Facility facility;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: facility.type.color,
-          child: Icon(facility.type.icon, color: Colors.white),
-        ),
-        title: Text(facility.name),
-        subtitle: Text('${facility.type.label} • ${facility.ratingLabel}'),
-        trailing: IconButton(
-          icon: const Icon(Icons.favorite, color: Colors.red),
-          onPressed: () => FavoritesService.instance.toggle(facility.id),
-        ),
-        // TODO: onTap -> buka layar Detail (langkah berikutnya)
       ),
     );
   }
@@ -65,7 +48,7 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.favorite_border, size: 64, color: Colors.grey),
+            Icon(Icons.favorite_border, size: 64, color: svMut),
             SizedBox(height: 12),
             Text('Belum ada favorit',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),

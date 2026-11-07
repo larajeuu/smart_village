@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import 'screens/splash_screen.dart';
 import 'services/favorites_service.dart';
-import 'services/location_service.dart';
 import 'services/notification_service.dart';
+import 'services/notifikasi_service.dart';
 import 'theme.dart';
 import 'widgets/geofence_popup.dart';
 
@@ -24,26 +27,25 @@ class SmartVillageApp extends StatefulWidget {
 }
 
 class _SmartVillageAppState extends State<SmartVillageApp> {
+  StreamSubscription<Notifikasi>? _sub;
+
   @override
   void initState() {
     super.initState();
-    final svc = LocationService.instance;
-    svc.init();
-    // Notifikasi geofence (masuk / keluar area fasilitas)
-    svc.events.stream.listen((e) {
-      if (e.entered) {
-        NotificationService.instance.showGeofenceEnter(e.facility);
-        final ctx = navigatorKey.currentContext;
-        if (ctx != null) showGeofencePopup(ctx, e);
-      } else {
-        messengerKey.currentState
-          ?..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            backgroundColor: Colors.orange[800],
-            content: Text('Anda meninggalkan area ${e.facility.name}'),
-          ));
-      }
+    // Satu-satunya pintu event geofence: NotifikasiService.
+    // Snackbar masuk/keluar sudah ditangani di sana.
+    _sub = NotifikasiService.instance.kejadian.listen((n) {
+      if (n.jenis != JenisNotif.masuk) return;
+      NotificationService.instance.showGeofenceEnter(n.faskes);
+      final ctx = navigatorKey.currentContext;
+      if (ctx != null) showGeofencePopup(ctx, n.faskes);
     });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
   }
 
   @override
