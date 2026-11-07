@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../data/faskes.dart';
 import '../widgets/common.dart';
 import '../widgets/sv_theme.dart';
+import '../services/notifikasi_service.dart';
 import 'list_screen.dart';
+import 'notifikasi_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   /// Diisi oleh Shell (tab Peta). Opsional supaya layar tetap bisa dipakai sendiri.
@@ -17,13 +19,6 @@ class HomeScreen extends StatelessWidget {
       ['Klinik', KategoriJenis.klinik, Color(0xFF1888D8)],
       ['Semua', KategoriJenis.semua, Color(0xFFFB9B16)],
     ];
-    final dekat = daftarFaskes
-        .where((f) => const [
-              'RSUD Kabupaten X',
-              'Puskesmas Sukamaju',
-              'Klinik Sehat Mandiri'
-            ].contains(f.nama))
-        .toList();
     return SafeArea(
       child: ListView(padding: EdgeInsets.zero, children: [
         Padding(
@@ -43,7 +38,41 @@ class HomeScreen extends StatelessWidget {
                 ]),
               ]),
             ),
-            const Icon(Icons.notifications_none, color: svSub),
+            ValueListenableBuilder<List<Notifikasi>>(
+              valueListenable: NotifikasiService.instance.items,
+              builder: (_, list, __) {
+                final baru = list.where((n) => !n.dibaca).length;
+                return IconButton(
+                  tooltip: 'Notifikasi',
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const NotifikasiScreen())),
+                  icon: Stack(clipBehavior: Clip.none, children: [
+                    const Icon(Icons.notifications_none,
+                        color: svSub, size: 26),
+                    if (baru > 0)
+                      Positioned(
+                        right: -3,
+                        top: -3,
+                        child: Container(
+                          constraints: const BoxConstraints(
+                              minWidth: 16, minHeight: 16),
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                              color: svRed, shape: BoxShape.circle),
+                          child: Text(baru > 9 ? '9+' : '$baru',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                  ]),
+                );
+              },
+            ),
           ]),
         ),
         Padding(
@@ -100,8 +129,15 @@ class HomeScreen extends StatelessWidget {
         ),
         ValueListenableBuilder(
           valueListenable: userPos,
-          builder: (_, __, ___) => Column(
-              children: dekat.map((f) => FacilityTile(f, foto: 76)).toList()),
+          builder: (_, pos, __) {
+            final dekat = [...daftarFaskes]
+              ..sort((a, b) => jarakKm(a, pos).compareTo(jarakKm(b, pos)));
+            return Column(
+                children: dekat
+                    .take(3)
+                    .map((f) => FacilityTile(f, foto: 76))
+                    .toList());
+          },
         ),
       ]),
     );

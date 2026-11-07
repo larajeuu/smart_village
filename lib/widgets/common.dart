@@ -171,10 +171,16 @@ class SearchBox extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final VoidCallback? onTap;
   final bool autofocus;
+  final TextEditingController? controller;
   const SearchBox(this.hint,
-      {super.key, this.onChanged, this.onTap, this.autofocus = false});
+      {super.key,
+      this.onChanged,
+      this.onTap,
+      this.autofocus = false,
+      this.controller});
   @override
   Widget build(BuildContext context) => TextField(
+        controller: controller,
         autofocus: autofocus,
         readOnly: onTap != null,
         onTap: onTap,

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
@@ -44,7 +46,15 @@ const List<Faskes> daftarFaskes = [
     rating: 4.5,
     pos: LatLng(-6.2000, 106.8400),
     radius: 300,
-    layanan: ['IGD', 'Poliklinik', 'Rawat Inap', 'Laboratorium', 'Radiologi'],
+    layanan: [
+      'IGD',
+      'Poliklinik',
+      'Rawat Inap',
+      'Laboratorium',
+      'Radiologi',
+      'Farmasi',
+      'Rehabilitasi',
+    ],
   ),
   Faskes(
     nama: 'RS Harapan Bunda',
@@ -108,10 +118,74 @@ const List<Faskes> daftarFaskes = [
   ),
 ];
 
-// ======== POSISI PENGGUNA ========
-const LatLng posisiAwal = LatLng(-6.2088, 106.8456);
+// ======== JENIS PELAYANAN ========
+/// 7 layanan utama yang tampil sebagai ikon di halaman Detail.
+/// Layanan lain (KIA, Gigi, Mata, dst.) dibuka lewat tombol "Lainnya".
+const List<String> layananUtama = [
+  'Poliklinik',
+  'IGD',
+  'Rawat Inap',
+  'Laboratorium',
+  'Radiologi',
+  'Farmasi',
+  'Rehabilitasi',
+];
+
+const Map<String, String> deskripsiLayanan = {
+  'Poliklinik':
+      'Pemeriksaan dan konsultasi dengan dokter umum maupun spesialis tanpa perlu menginap (rawat jalan).',
+  'IGD':
+      'Instalasi Gawat Darurat. Menangani kondisi darurat yang membutuhkan pertolongan segera, buka 24 jam.',
+  'Rawat Inap':
+      'Perawatan pasien yang perlu menginap, lengkap dengan kamar, perawat, dan pemantauan dokter.',
+  'Laboratorium':
+      'Pemeriksaan sampel darah, urin, dan lainnya untuk membantu dokter menegakkan diagnosis.',
+  'Radiologi':
+      'Pemeriksaan penunjang berbasis pencitraan seperti rontgen, USG, dan CT scan.',
+  'Farmasi':
+      'Penyediaan dan konsultasi obat sesuai resep dokter oleh apoteker.',
+  'Rehabilitasi':
+      'Terapi pemulihan fungsi tubuh, misalnya fisioterapi setelah cedera atau operasi.',
+  'Umum': 'Pemeriksaan kesehatan umum oleh dokter umum.',
+  'KIA':
+      'Kesehatan Ibu dan Anak: pemeriksaan kehamilan, persalinan, serta tumbuh kembang anak.',
+  'Imunisasi': 'Pemberian vaksin dasar dan lanjutan untuk bayi, anak, dan dewasa.',
+  'Gigi': 'Pemeriksaan dan perawatan kesehatan gigi dan mulut.',
+  'Mata': 'Pemeriksaan dan penanganan penyakit mata oleh dokter spesialis.',
+  'Bedah': 'Tindakan operasi umum maupun spesialis oleh tim bedah.',
+};
+
+String deskripsiDari(String layanan, Faskes f) =>
+    deskripsiLayanan[layanan] ?? 'Layanan $layanan tersedia di ${f.nama}.';
+
+IconData ikonLayananLain(String nama) {
+  switch (nama) {
+    case 'KIA':
+      return Icons.child_care;
+    case 'Imunisasi':
+      return Icons.vaccines;
+    case 'Mata':
+      return Icons.visibility_outlined;
+    case 'Bedah':
+      return Icons.healing;
+    case 'Umum':
+      return Icons.person_outline;
+    default:
+      return Icons.local_hospital_outlined;
+  }
+}
+
+// ======== POSISI PENGGUNA (LBS) ========
+// Titik awal demo. Dipakai kalau GPS mati / izin ditolak / belum dapat sinyal.
+// Dipilih supaya 3 fasilitas terdekat = RSUD, Puskesmas, Klinik (sama dgn desain).
+const LatLng posisiAwal = LatLng(-6.1930, 106.8310);
 final ValueNotifier<LatLng> userPos = ValueNotifier<LatLng>(posisiAwal);
 
+/// true = lokasi digeser manual (tekan lama di peta), update GPS diabaikan.
+bool modeSimulasi = false;
+StreamSubscription<Position>? _gpsSub;
+
+/// Minta izin, ambil posisi GPS, lalu pantau terus selama aplikasi berjalan.
 Future<void> initLocation() async {
   try {
     final enabled = await Geolocator.isLocationServiceEnabled();
@@ -124,17 +198,53 @@ Future<void> initLocation() async {
         perm == LocationPermission.deniedForever) {
       return;
     }
+
+    // pantau perubahan posisi (update tiap bergerak >= 10 meter)
+    await _gpsSub?.cancel();
+    _gpsSub = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high, distanceFilter: 10),
+    ).listen((p) {
+      if (!modeSimulasi) userPos.value = LatLng(p.latitude, p.longitude);
+    });
+
     final p = await Geolocator.getCurrentPosition();
-    userPos.value = LatLng(p.latitude, p.longitude);
+    if (!modeSimulasi) userPos.value = LatLng(p.latitude, p.longitude);
   } catch (_) {
-    // gagal ambil GPS: tetap pakai posisiAwal
+    // gagal ambil GPS: tetap pakai posisi terakhir / posisiAwal
   }
 }
 
-double jarakKm(Faskes f, LatLng dari) {
-  final meter = const Distance().as(LengthUnit.Meter, dari, f.pos);
-  return meter / 1000;
+/// Dipakai tekan-lama di peta (untuk emulator / demo).
+void setPosisiSimulasi(LatLng p) {
+  modeSimulasi = true;
+  userPos.value = p;
 }
+
+/// Matikan simulasi, kembali membaca GPS.
+Future<void> kembaliKeGps() async {
+  modeSimulasi = false;
+  userPos.value = posisiAwal;
+  await initLocation();
+}
+
+/// Jarak dua titik (meter) dengan rumus Haversine.
+double jarakMeter(LatLng a, LatLng b) {
+  const r = 6371000.0; // jari-jari bumi (meter)
+  double rad(double d) => d * math.pi / 180;
+  final dLat = rad(b.latitude - a.latitude);
+  final dLon = rad(b.longitude - a.longitude);
+  final s1 = math.sin(dLat / 2);
+  final s2 = math.sin(dLon / 2);
+  final h = s1 * s1 +
+      math.cos(rad(a.latitude)) * math.cos(rad(b.latitude)) * s2 * s2;
+  return 2 * r * math.asin(math.sqrt(h.clamp(0.0, 1.0)));
+}
+
+double jarakKm(Faskes f, LatLng dari) => jarakMeter(dari, f.pos) / 1000;
+
+/// Geofencing: true bila titik [p] berada di dalam radius fasilitas.
+bool dalamGeofence(Faskes f, LatLng p) => jarakMeter(p, f.pos) <= f.radius;
 
 // ======== WARNA, IKON, FOTO ========
 Color warnaKategori(String kategori) {
