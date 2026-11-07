@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../data/faskes.dart';
@@ -10,17 +11,6 @@ class NotificationService {
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _siap = false;
   int _nextId = 0;
-
-  static const _detailAndroid = AndroidNotificationDetails(
-    'geofence_channel',
-    'Area Fasilitas Kesehatan',
-    channelDescription:
-        'Pemberitahuan saat Anda memasuki area fasilitas kesehatan',
-    importance: Importance.high,
-    priority: Priority.high,
-    visibility:
-        NotificationVisibility.public, // isi tampil penuh di lock screen
-  );
 
   /// Dipanggil sekali saat app start.
   Future<void> init() async {
@@ -44,11 +34,39 @@ class NotificationService {
   /// Dipanggil saat user masuk area geofence.
   Future<void> showGeofenceEnter(Faskes faskes) async {
     if (!_siap) return;
+
+    final jarak = jarakMeter(userPos.value, faskes.pos).round();
+    final judul = 'Anda berada di area ${faskes.nama}';
+    final isi = 'Jarak Anda: $jarak meter';
+
+    // Foto fasilitas sebagai gambar besar. Kalau gagal dimuat,
+    // notifikasi tetap tampil tanpa gambar.
+    StyleInformation? gaya;
+    try {
+      final data = await rootBundle.load(faskes.foto);
+      gaya = BigPictureStyleInformation(
+        ByteArrayAndroidBitmap(data.buffer.asUint8List()),
+        contentTitle: judul,
+        summaryText: isi,
+      );
+    } catch (_) {}
+
     await _plugin.show(
       id: _nextId++,
-      title: 'Anda masuk area ${faskes.nama}',
-      body: '${faskes.jenis} • radius ${faskes.radius.round()} m',
-      notificationDetails: const NotificationDetails(android: _detailAndroid),
+      title: judul,
+      body: isi,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          'geofence_channel',
+          'Area Fasilitas Kesehatan',
+          channelDescription:
+              'Pemberitahuan saat Anda memasuki area fasilitas kesehatan',
+          importance: Importance.high,
+          priority: Priority.high,
+          visibility: NotificationVisibility.public,
+          styleInformation: gaya,
+        ),
+      ),
     );
   }
 }
