@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import '../data/faskes.dart';
-import '../models/facility.dart' show facilities;
 import '../screens/detail_screen.dart';
 import 'sv_theme.dart';
 
 /// ID favorit untuk sebuah faskes. Dicocokkan lewat nama ke data tim (Facility)
 /// supaya sama dengan yang dibaca layar Favorit. Kalau tidak ada, pakai nama.
-String favId(Faskes f) {
-  for (final x in facilities) {
-    if (x.name == f.nama) return x.id;
-  }
-  return f.nama;
-}
+String favId(Faskes f) => f.nama;
 
 String fmtKm(double km) => km < 1
     ? '${(km * 1000).round()} m'
@@ -116,10 +110,11 @@ class FacilityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chips = f.layanan.take(maxChips).map((e) => MiniChip(e)).toList();
-    if (!detail && f.layanan.length > maxChips) chips.add(const MiniChip('...'));
+    if (!detail && f.layanan.length > maxChips)
+      chips.add(const MiniChip('...'));
     return InkWell(
-      onTap: () => Navigator.push(context,
-          MaterialPageRoute(builder: (_) => DetailScreen(faskes: f))),
+      onTap: () => Navigator.push(
+          context, MaterialPageRoute(builder: (_) => DetailScreen(faskes: f))),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -128,7 +123,8 @@ class FacilityTile extends StatelessWidget {
               child: faskesFoto(f, w: foto, h: foto)),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Expanded(
                     child: Text(f.nama,
