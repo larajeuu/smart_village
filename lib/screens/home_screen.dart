@@ -1,395 +1,238 @@
 import 'package:flutter/material.dart';
+import '../data/faskes.dart';
+import '../widgets/common.dart';
+import '../widgets/sv_theme.dart';
 import 'list_screen.dart';
-import 'peta_lokasi_screen.dart';
-
-// Ubah ke false kalau foto home.jpeg SUDAH berisi logo + tulisan
-// "Smart Village" di dalam gambarnya (supaya tidak dobel).
-const bool pakaiHeaderTeks = true;
 
 class HomeScreen extends StatelessWidget {
+  /// Diisi oleh Shell (tab Peta). Opsional supaya layar tetap bisa dipakai sendiri.
   final VoidCallback? onOpenMap;
-  const HomeScreen({super.key, required this.onOpenMap});
-
-  void _buka(BuildContext context, Widget halaman) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => halaman));
-  }
+  const HomeScreen({super.key, this.onOpenMap});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // ===== HEADER: TEKS DI ATAS GAMBAR (seperti tugas) =====
-            SizedBox(
-              height: 420,
-              child: Stack(
-                children: [
-                  // 1) Gambar memenuhi seluruh header
-                  Positioned.fill(
-                    child: Image.asset(
-                      'assets/images/banner_home.jpeg',
-                      fit: BoxFit.cover,
-                      alignment: Alignment.bottomCenter,
-                      errorBuilder: (_, error, __) {
-                        debugPrint('BANNER GAGAL: $error');
-                        return Container(
-                          color: Colors.blue.shade100,
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'assets/images/home.jpeg\ntidak ditemukan',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  // 2) Gradasi biru muda di atas, supaya tulisan jelas terbaca
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 230,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            const Color(0xFFBFE3FF).withOpacity(0.95),
-                            const Color(0xFFBFE3FF).withOpacity(0.0),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // 3) Gradasi putih di bawah, tempat search bar
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 110,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.white.withOpacity(0.0),
-                            Colors.white,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // 4) Logo + judul + deskripsi
-                  if (pakaiHeaderTeks)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: SafeArea(
-                        bottom: false,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 36, 24, 0),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  _logo(),
-                                  const SizedBox(width: 14),
-                                  const Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Smart Village',
-                                        style: TextStyle(
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.w800,
-                                          color: Color(0xFF1B3A8A),
-                                          height: 1.1,
-                                          letterSpacing: 0.3,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Sehat Bersama, Desa Maju',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 22),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 18, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.75),
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.06),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Text.rich(
-                                  TextSpan(
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      height: 1.5,
-                                      color: Color(0xFF334155),
-                                    ),
-                                    children: [
-                                      const TextSpan(text: 'Cari lokasi '),
-                                      TextSpan(
-                                        text: 'Klinik',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.deepPurple.shade600,
-                                        ),
-                                      ),
-                                      const TextSpan(text: ', '),
-                                      TextSpan(
-                                        text: 'Puskesmas',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.green.shade700,
-                                        ),
-                                      ),
-                                      const TextSpan(text: ' dan\n'),
-                                      TextSpan(
-                                        text: 'Rumah Sakit',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.red.shade600,
-                                        ),
-                                      ),
-                                      const TextSpan(
-                                          text: ' terdekat di Kabupaten X'),
-                                    ],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // 5) Search bar menimpa bagian bawah gambar
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 16,
-                    child: Material(
-                      elevation: 6,
-                      borderRadius: BorderRadius.circular(28),
-                      child: TextField(
-                        readOnly: true,
-                        onTap: () => _buka(
-                            context, const ListScreen(title: 'Cari Fasilitas')),
-                        decoration: InputDecoration(
-                          hintText: 'Cari nama fasilitas kesehatan...',
-                          prefixIcon: const Icon(Icons.search),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 16),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(28),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+    const tiles = [
+      ['Rumah Sakit', KategoriJenis.rumahSakit, Color(0xFFF2455F)],
+      ['Puskesmas', KategoriJenis.puskesmas, Color(0xFF4C9F50)],
+      ['Klinik', KategoriJenis.klinik, Color(0xFF1888D8)],
+      ['Semua', KategoriJenis.semua, Color(0xFFFB9B16)],
+    ];
+    final dekat = daftarFaskes
+        .where((f) => const [
+              'RSUD Kabupaten X',
+              'Puskesmas Sukamaju',
+              'Klinik Sehat Mandiri'
+            ].contains(f.nama))
+        .toList();
+    return SafeArea(
+      child: ListView(padding: EdgeInsets.zero, children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+          child: Row(children: [
+            const Icon(Icons.location_on, color: svBlue, size: 30),
+            const SizedBox(width: 6),
+            const Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Smart Village',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                Row(children: [
+                  Icon(Icons.location_on, size: 11, color: svGreen),
+                  Text('Kabupaten X',
+                      style: TextStyle(fontSize: 11, color: svMut)),
+                ]),
+              ]),
             ),
-
-            // ===== 4 MENU =====
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-              child: GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 14,
-                childAspectRatio: 1.25,
-                children: [
-                  _menu(
-                      'Rumah Sakit',
-                      Icons.local_hospital,
-                      const Color(0xFF1E6FE8),
-                      const Color(0xFFDCEBFF),
-                      () => _buka(
-                          context,
-                          const ListScreen(
-                              kategori: 'Rumah Sakit', title: 'Rumah Sakit'))),
-                  _menu(
-                      'Puskesmas',
-                      Icons.home_work,
-                      Colors.green,
-                      const Color(0xFFDDF5E3),
-                      () => _buka(
-                          context,
-                          const ListScreen(
-                              kategori: 'Puskesmas', title: 'Puskesmas'))),
-                  _menu(
-                      'Klinik',
-                      Icons.medical_services,
-                      Colors.deepPurple,
-                      const Color(0xFFEBDDFA),
-                      () => _buka(
-                          context,
-                          const ListScreen(
-                              kategori: 'Klinik', title: 'Klinik'))),
-                  _menu(
-                      'Peta Lokasi',
-                      Icons.location_on,
-                      const Color(0xFFB8860B),
-                      const Color(0xFFFFF0CC),
-                      () => _buka(context, const PetaLokasiScreen())),
-                ],
-              ),
-            ),
-          ],
+            const Icon(Icons.notifications_none, color: svSub),
+          ]),
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+          child: SearchBox('Cari rumah sakit, puskesmas, klinik...',
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ListScreen(title: 'Daftar Lokasi', cari: true)))),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 6),
+          child: Row(
+            children: [
+              for (var i = 0; i < tiles.length; i++) ...[
+                if (i > 0) const SizedBox(width: 10),
+                Expanded(
+                  child: _KategoriCard(
+                    nama: tiles[i][0] as String,
+                    jenis: tiles[i][1] as KategoriJenis,
+                    warna: tiles[i][2] as Color,
+                    onTap: () {
+                      final nama = tiles[i][0] as String;
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => ListScreen(
+                                  kategori: nama == 'Semua' ? null : nama,
+                                  title: nama == 'Semua'
+                                      ? 'Daftar Lokasi'
+                                      : nama)));
+                    },
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            const Text('Layanan Kesehatan Terdekat',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ListScreen(title: 'Daftar Lokasi'))),
+              child: const Text('Lihat Semua',
+                  style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600, color: svBlue)),
+            ),
+          ]),
+        ),
+        ValueListenableBuilder(
+          valueListenable: userPos,
+          builder: (_, __, ___) => Column(
+              children: dekat.map((f) => FacilityTile(f, foto: 76)).toList()),
+        ),
+      ]),
     );
   }
+}
 
-  Widget _logo() => const SmartVillageLogo(width: 64);
+// ===================== IKON KATEGORI (sesuai desain) =====================
 
-  Widget _menu(
-      String label, IconData icon, Color color, Color bg, VoidCallback onTap) {
-    return InkWell(
+enum KategoriJenis { rumahSakit, puskesmas, klinik, semua }
+
+/// Kartu putih kecil: kotak ikon berwarna + label di bawahnya.
+class _KategoriCard extends StatelessWidget {
+  final String nama;
+  final KategoriJenis jenis;
+  final Color warna;
+  final VoidCallback onTap;
+  const _KategoriCard(
+      {required this.nama,
+      required this.jenis,
+      required this.warna,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
       child: Container(
-        decoration:
-            BoxDecoration(color: bg, borderRadius: BorderRadius.circular(18)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 42),
-            const SizedBox(height: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x14000000), blurRadius: 10, offset: Offset(0, 2))
           ],
         ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          KategoriIkon(jenis: jenis, warna: warna, size: 56),
+          const SizedBox(height: 8),
+          Text(nama,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w600, color: svText)),
+        ]),
       ),
     );
   }
 }
 
-class SmartVillageLogo extends StatelessWidget {
-  final double width;
-  const SmartVillageLogo({super.key, this.width = 64});
+/// Kotak membulat berwarna + ikon putih (digambar sendiri, tanpa file gambar).
+class KategoriIkon extends StatelessWidget {
+  final KategoriJenis jenis;
+  final Color warna;
+  final double size;
+  const KategoriIkon(
+      {super.key, required this.jenis, required this.warna, this.size = 56});
 
   @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(width, width * 1.3),
-      painter: _LogoPainter(),
-    );
-  }
+  Widget build(BuildContext context) => CustomPaint(
+      size: Size(size, size), painter: _IkonPainter(jenis, warna));
 }
 
-class _LogoPainter extends CustomPainter {
+class _IkonPainter extends CustomPainter {
+  final KategoriJenis jenis;
+  final Color warna;
+  _IkonPainter(this.jenis, this.warna);
+
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final r = w / 2;
-    final cx = r;
-    final cy = r;
+    // semua koordinat dihitung pada kanvas 100 x 100, lalu diskalakan
+    canvas.scale(size.width / 100, size.height / 100);
 
-    // ===== Bentuk pin =====
-    final pin = Path()
-      ..moveTo(cx, h)
-      ..cubicTo(cx - r * 0.15, h - r * 0.5, 0, cy + r * 0.9, 0, cy)
-      ..arcToPoint(Offset(w, cy), radius: Radius.circular(r), clockwise: true)
-      ..cubicTo(w, cy + r * 0.9, cx + r * 0.15, h - r * 0.5, cx, h)
-      ..close();
+    final isi = Paint()..color = warna;
+    final putih = Paint()..color = Colors.white;
+    final garis = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
-    // Bayangan lembut
-    canvas.drawShadow(pin, Colors.black.withOpacity(0.35), 4, true);
+    RRect kotak(double x0, double y0, double x1, double y1, double r) =>
+        RRect.fromLTRBR(x0, y0, x1, y1, Radius.circular(r));
 
-    // Isi pin: gradasi biru
-    canvas.drawPath(
-      pin,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF3B8CF5), Color(0xFF1B4DB8)],
-        ).createShader(Rect.fromLTWH(0, 0, w, h)),
-    );
+    // kotak berwarna
+    canvas.drawRRect(kotak(0, 0, 100, 100, 29), isi);
 
-    // ===== Lengkungan hijau di bagian bawah (dipotong mengikuti pin) =====
-    canvas.save();
-    canvas.clipPath(pin);
+    switch (jenis) {
+      case KategoriJenis.rumahSakit:
+        // gedung: blok atas + badan, lalu tanda tambah berwarna di tengah
+        canvas.drawRRect(kotak(38, 22, 62, 44, 4), putih);
+        canvas.drawRRect(kotak(22, 36, 78, 78, 5), putih);
+        canvas.drawRRect(kotak(43.5, 46, 56.5, 70, 2.5), isi);
+        canvas.drawRRect(kotak(38, 52.5, 62, 63.5, 2.5), isi);
+        break;
 
-    final waveLight = Path()
-      ..moveTo(0, h * 0.74)
-      ..quadraticBezierTo(w * 0.35, h * 0.62, w * 0.7, h * 0.72)
-      ..quadraticBezierTo(w * 0.88, h * 0.76, w, h * 0.70)
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
-    canvas.drawPath(waveLight, Paint()..color = const Color(0xFF7BD389));
+      case KategoriJenis.puskesmas:
+        // tanda tambah tebal
+        canvas.drawRRect(kotak(40, 22, 60, 78, 5), putih);
+        canvas.drawRRect(kotak(22, 40, 78, 60, 5), putih);
+        break;
 
-    final waveDark = Path()
-      ..moveTo(0, h * 0.80)
-      ..quadraticBezierTo(w * 0.35, h * 0.68, w * 0.7, h * 0.78)
-      ..quadraticBezierTo(w * 0.88, h * 0.82, w, h * 0.76)
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
-    canvas.drawPath(waveDark, Paint()..color = const Color(0xFF2FAE5F));
+      case KategoriJenis.klinik:
+        // stetoskop: dua selang + selang ke bawah + kepala stetoskop
+        final selang = Path()
+          ..moveTo(34, 22)
+          ..lineTo(34, 40)
+          ..cubicTo(34, 56, 52, 56, 52, 40)
+          ..lineTo(52, 22);
+        canvas.drawPath(selang, garis);
+        final kebawah = Path()
+          ..moveTo(43, 53)
+          ..cubicTo(43, 76, 68, 76, 68, 62);
+        canvas.drawPath(kebawah, garis);
+        canvas.drawCircle(
+            const Offset(68, 56), 6.5, garis..strokeWidth = 4.5);
+        break;
 
-    canvas.restore();
-
-    // ===== Lingkaran putih =====
-    final center = Offset(cx, cy);
-    canvas.drawCircle(center, r * 0.62, Paint()..color = Colors.white);
-
-    // ===== Tanda plus merah =====
-    final merah = Paint()..color = const Color(0xFFE53935);
-    final arm = r * 0.27;
-    final len = r * 0.92;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: center, width: len, height: arm),
-        Radius.circular(arm * 0.3),
-      ),
-      merah,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: center, width: arm, height: len),
-        Radius.circular(arm * 0.3),
-      ),
-      merah,
-    );
+      case KategoriJenis.semua:
+        // grid 2 x 2
+        for (final x in const [26.0, 54.0]) {
+          for (final y in const [26.0, 54.0]) {
+            canvas.drawRRect(kotak(x, y, x + 20, y + 20, 5), putih);
+          }
+        }
+        break;
+    }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _IkonPainter old) =>
+      old.jenis != jenis || old.warna != warna;
 }
