@@ -6,6 +6,7 @@ import '../widgets/sv_theme.dart';
 import 'layanan_lainnya_screen.dart';
 import 'list_screen.dart';
 import 'peta_lokasi_screen.dart';
+import 'route_screen.dart';
 
 const _navy = Color(0xFF1B2B4B);
 const _teal = Color(0xFF14998E);
@@ -33,8 +34,8 @@ final List<_Layanan> _layanan = [
         Icon(Icons.add, color: Colors.white, size: 13),
       ]),
       _pinkSoft),
-  _Layanan('Rawat Inap', const Icon(Icons.bed, color: svBlue, size: 26),
-      _biruSoft),
+  _Layanan(
+      'Rawat Inap', const Icon(Icons.bed, color: svBlue, size: 26), _biruSoft),
   _Layanan('Laboratorium',
       const Icon(Icons.science_outlined, color: svBlue, size: 26), _biruSoft),
   _Layanan(
@@ -198,7 +199,7 @@ class DetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      // ===== tombol bawah =====
+      // ===== tombol bawah: Rute + Lihat di Peta =====
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(color: Colors.white, boxShadow: [
           BoxShadow(
@@ -209,19 +210,46 @@ class DetailScreen extends StatelessWidget {
           top: false,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 14),
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                  backgroundColor: svBlue,
-                  minimumSize: const Size.fromHeight(54),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28))),
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) =>
-                          PetaLokasiScreen(focus: f, showBack: true))),
-              child: const Text('Lihat di Peta',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                        foregroundColor: svBlue,
+                        side: BorderSide(color: svBlue),
+                        minimumSize: const Size.fromHeight(54),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28))),
+                    onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => RouteScreen(faskes: f))),
+                    icon: const Icon(Icons.directions, size: 20),
+                    label: const Text('Rute',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                        backgroundColor: svBlue,
+                        minimumSize: const Size.fromHeight(54),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28))),
+                    onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                PetaLokasiScreen(focus: f, showBack: true))),
+                    child: const Text('Lihat di Peta',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -267,8 +295,7 @@ class DetailScreen extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                               color: svSub)),
                       Text('  (${f.ulasan} ulasan)',
-                          style:
-                              const TextStyle(fontSize: 12, color: svMut)),
+                          style: const TextStyle(fontSize: 12, color: svMut)),
                       const Spacer(),
                       const Icon(Icons.location_on, size: 16, color: _teal),
                       const SizedBox(width: 2),
@@ -288,8 +315,7 @@ class DetailScreen extends StatelessWidget {
                           color: const Color(0xFFDDF6E4),
                           borderRadius: BorderRadius.circular(12)),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.access_time,
-                            size: 14, color: svGreen),
+                        const Icon(Icons.access_time, size: 14, color: svGreen),
                         const SizedBox(width: 5),
                         Text(jamBuka,
                             style: const TextStyle(
@@ -302,15 +328,12 @@ class DetailScreen extends StatelessWidget {
                     Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.location_on,
-                              size: 20, color: _teal),
+                          const Icon(Icons.location_on, size: 20, color: _teal),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(f.alamat,
                                 style: const TextStyle(
-                                    fontSize: 12.5,
-                                    height: 1.5,
-                                    color: svSub)),
+                                    fontSize: 12.5, height: 1.5, color: svSub)),
                           ),
                         ]),
                     const Divider(height: 32, color: svLine),
@@ -327,7 +350,8 @@ class DetailScreen extends StatelessWidget {
                         spacing: jarak,
                         runSpacing: 18,
                         children: [
-                          ..._layanan.map((s) => _itemLayanan(context, s, lebar)),
+                          ..._layanan
+                              .map((s) => _itemLayanan(context, s, lebar)),
                           _itemLainnya(context, lebar),
                         ],
                       );
