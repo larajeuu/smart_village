@@ -1,78 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'data/faskes.dart';
-import 'screens/home_screen.dart';
-import 'screens/peta_screen.dart';
-import 'screens/profile_screen.dart';
+import 'screens/splash_screen.dart';
+import 'services/favorites_service.dart';
+import 'services/location_service.dart';
+import 'services/notification_service.dart';
+import 'theme.dart';
+import 'widgets/geofence_popup.dart';
 
-void main() {
+final messengerKey = GlobalKey<ScaffoldMessengerState>();
+final navigatorKey = GlobalKey<NavigatorState>();
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  // Dimuat sebelum UI tampil supaya favorit sudah siap dibaca layar.
+  await FavoritesService.instance.init();
+  await NotificationService.instance.init();
   runApp(const SmartVillageApp());
 }
 
-class SmartVillageApp extends StatelessWidget {
+class SmartVillageApp extends StatefulWidget {
   const SmartVillageApp({super.key});
-
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Smart Village',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF1E6FE8),
-        useMaterial3: true,
-      ),
-      home: const MainShell(),
-    );
-  }
+  State<SmartVillageApp> createState() => _SmartVillageAppState();
 }
 
-class MainShell extends StatefulWidget {
-  const MainShell({super.key});
-
-  @override
-  State<MainShell> createState() => _MainShellState();
-}
-
-class _MainShellState extends State<MainShell> {
-  int _index = 0;
-
+class _SmartVillageAppState extends State<SmartVillageApp> {
   @override
   void initState() {
     super.initState();
-    initLocation(); // ambil posisi GPS
+    final svc = LocationService.instance;
+    svc.init();
+    // Notifikasi geofence (masuk / keluar area fasilitas)
+    svc.events.stream.listen((e) {
+      if (e.entered) {
+        NotificationService.instance.showGeofenceEnter(e.facility);
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null) showGeofencePopup(ctx, e);
+      } else {
+        messengerKey.currentState
+          ?..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            backgroundColor: Colors.orange[800],
+            content: Text('Anda meninggalkan area ${e.facility.name}'),
+          ));
+      }
+    });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _index,
-        children: const [
-          HomeScreen(),
-          PetaScreen(),
-          ProfileScreen(),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Beranda'),
-          NavigationDestination(
-              icon: Icon(Icons.map_outlined),
-              selectedIcon: Icon(Icons.map),
-              label: 'Peta'),
-          NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: 'Profil'),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'Smart Village',
+        debugShowCheckedModeBanner: false,
+        navigatorKey: navigatorKey,
+        scaffoldMessengerKey: messengerKey,
+        theme: buildTheme(),
+        home: const SplashScreen(),
+      );
 }

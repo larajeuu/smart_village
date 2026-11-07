@@ -7,7 +7,8 @@ import 'peta_lokasi_screen.dart';
 const bool pakaiHeaderTeks = true;
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final VoidCallback? onOpenMap;
+  const HomeScreen({super.key, required this.onOpenMap});
 
   void _buka(BuildContext context, Widget halaman) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => halaman));
@@ -105,7 +106,8 @@ class HomeScreen extends StatelessWidget {
                                   _logo(),
                                   const SizedBox(width: 14),
                                   const Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Smart Village',
@@ -275,8 +277,8 @@ class HomeScreen extends StatelessWidget {
 
   Widget _logo() => const SmartVillageLogo(width: 64);
 
-  Widget _menu(String label, IconData icon, Color color, Color bg,
-      VoidCallback onTap) {
+  Widget _menu(
+      String label, IconData icon, Color color, Color bg, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
