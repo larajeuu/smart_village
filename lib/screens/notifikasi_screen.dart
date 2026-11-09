@@ -3,6 +3,7 @@ import '../services/notifikasi_service.dart';
 import '../widgets/common.dart';
 import '../widgets/sv_theme.dart';
 import 'detail_screen.dart';
+import 'lock_screen_preview.dart';
 
 const _biruMuda = Color(0xFFF3F8FF);
 const _oranye = Color(0xFFF59E0B);
@@ -15,6 +16,15 @@ class NotifikasiScreen extends StatelessWidget {
     final svc = NotifikasiService.instance;
     return Scaffold(
       appBar: backBar(context, 'Notifikasi', actions: [
+        // Tombol pratinjau lock screen (layar 6)
+        IconButton(
+          tooltip: 'Pratinjau lock screen',
+          icon: const Icon(Icons.phone_android),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const LockScreenPreview()),
+          ),
+        ),
         PopupMenuButton<String>(
           onSelected: (v) {
             if (v == 'baca') {
@@ -133,7 +143,7 @@ class _Kosong extends StatelessWidget {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             SizedBox(height: 6),
             Text(
-                'Notifikasi muncul saat Anda masuk atau keluar area fasilitas kesehatan (geofencing).\n\nUntuk mencoba di emulator: buka tab Peta, lalu tekan lama di dekat pin fasilitas.',
+                'Notifikasi muncul saat Anda masuk atau keluar area fasilitas kesehatan (geofencing).\n\nUntuk mencoba di emulator: buka tab Peta, lalu tekan lama di dekat pin fasilitas.\n\nAtau ketuk ikon ponsel di kanan atas untuk melihat pratinjau lock screen.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12.5, height: 1.5, color: svSub)),
           ]),

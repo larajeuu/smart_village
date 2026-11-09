@@ -65,16 +65,17 @@ class DetailScreen extends StatelessWidget {
   final Faskes faskes;
   const DetailScreen({super.key, required this.faskes});
 
-  Widget _kotak(IconData ikon, Color warna, VoidCallback onTap) => Material(
+  /// Tombol bulat putih (kembali & favorit) sesuai desain.
+  Widget _bulat(IconData ikon, Color warna, VoidCallback onTap) => Material(
         color: Colors.white,
         elevation: 2,
         shadowColor: Colors.black26,
-        borderRadius: BorderRadius.circular(11),
+        shape: const CircleBorder(),
         child: InkWell(
-          borderRadius: BorderRadius.circular(11),
+          customBorder: const CircleBorder(),
           onTap: onTap,
           child: SizedBox(
-              width: 36, height: 36, child: Icon(ikon, size: 22, color: warna)),
+              width: 38, height: 38, child: Icon(ikon, size: 22, color: warna)),
         ),
       );
 
@@ -169,7 +170,7 @@ class DetailScreen extends StatelessWidget {
                       backgroundColor: svBlue,
                       minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24))),
+                          borderRadius: BorderRadius.circular(16))),
                   onPressed: () {
                     Navigator.pop(sheetCtx);
                     Navigator.push(
@@ -216,10 +217,10 @@ class DetailScreen extends StatelessWidget {
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                         foregroundColor: svBlue,
-                        side: BorderSide(color: svBlue),
+                        side: const BorderSide(color: svBlue),
                         minimumSize: const Size.fromHeight(54),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28))),
+                            borderRadius: BorderRadius.circular(16))),
                     onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -238,7 +239,7 @@ class DetailScreen extends StatelessWidget {
                         backgroundColor: svBlue,
                         minimumSize: const Size.fromHeight(54),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28))),
+                            borderRadius: BorderRadius.circular(16))),
                     onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -292,19 +293,19 @@ class DetailScreen extends StatelessWidget {
                       Text(rt(f.rating),
                           style: const TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: svSub)),
+                              fontWeight: FontWeight.w700,
+                              color: _navy)),
                       Text('  (${f.ulasan} ulasan)',
                           style: const TextStyle(fontSize: 12, color: svMut)),
                       const Spacer(),
-                      const Icon(Icons.location_on, size: 16, color: _teal),
+                      const Icon(Icons.location_on, size: 16, color: svGreen),
                       const SizedBox(width: 2),
                       ValueListenableBuilder(
                           valueListenable: userPos,
                           builder: (_, __, ___) => Text(jarakStr(f),
                               style: const TextStyle(
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                   color: _navy))),
                     ]),
                     const SizedBox(height: 12),
@@ -315,7 +316,7 @@ class DetailScreen extends StatelessWidget {
                           color: const Color(0xFFDDF6E4),
                           borderRadius: BorderRadius.circular(12)),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.access_time, size: 14, color: svGreen),
+                        const Icon(Icons.storefront, size: 14, color: svGreen),
                         const SizedBox(width: 5),
                         Text(jamBuka,
                             style: const TextStyle(
@@ -328,7 +329,8 @@ class DetailScreen extends StatelessWidget {
                     Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.location_on, size: 20, color: _teal),
+                          const Icon(Icons.location_on,
+                              size: 20, color: svGreen),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(f.alamat,
@@ -361,7 +363,7 @@ class DetailScreen extends StatelessWidget {
           ),
         ),
 
-        // ===== tombol atas: kembali & favorit =====
+        // ===== tombol atas: kembali & favorit (bulat) =====
         Positioned(
           top: 0,
           left: 0,
@@ -373,13 +375,13 @@ class DetailScreen extends StatelessWidget {
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _kotak(Icons.chevron_left, _navy,
+                    _bulat(Icons.chevron_left, _navy,
                         () => Navigator.pop(context)),
                     ValueListenableBuilder<Set<String>>(
                       valueListenable: FavoritesService.instance.ids,
                       builder: (_, s, __) {
                         final fav = s.contains(favId(f));
-                        return _kotak(
+                        return _bulat(
                             fav ? Icons.favorite : Icons.favorite_border,
                             fav ? svRed : _navy, () {
                           FavoritesService.instance.toggle(favId(f));
